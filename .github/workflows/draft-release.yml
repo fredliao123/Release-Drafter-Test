@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  update_release_draft:
+  draft-release:
     runs-on: ubuntu-latest
     steps:
       - name: "Generate build number"
@@ -30,11 +30,9 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: "Provide keystore for project"
-        run: echo "$KEYSTORE_ENCODED" | base64 --decode > KEYSTORE
-        shell: bash
       - name: "Build + sign app"
-        run: ./gradlew :app:bundleRelease --stacktrace
+        run: |
+          ./gradlew :app:assembleDebug --stacktrace
         shell: bash
         env:
           BUILD_NUMBER: ${{ steps.buildnumber.outputs.build_number }}
@@ -42,13 +40,13 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      - name: "☁ Upload aab to GitHub"
+      - name: "☁ Upload apk to GitHub"
         uses: actions/upload-artifact@v1
         with:
           name: app
-          path: app/build/outputs/aab/release/app-release.aab
+          path: app/build/outputs/apk/debug/app-debug.apk
       - name: "Zip build artifact"
-        run: zip app-artifacts.zip app/build/outputs/aab/release/app-release.aab
+        run: zip app-artifacts.zip app/build/outputs/apk/debug/app-debug.apk
       - name: "Upload artifact to draft release"
         uses: actions/upload-release-asset@v1
         env:
