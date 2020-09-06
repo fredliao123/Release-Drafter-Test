@@ -24,19 +24,12 @@ jobs:
         run: |
           ./gradlew :app:assembleDebug --stacktrace
         shell: bash
-        env:
-          BUILD_NUMBER: ${{ steps.buildnumber.outputs.build_number }}
-          KEYSTORE_ENCODED: ${{ secrets.KEYSTORE }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      - name: "Upload apk to GitHub"
-        uses: actions/upload-artifact@v1
-        with:
-          name: app-v${{ steps.buildnumber.outputs.build_number }}
-          path: app/build/outputs/apk/debug/app-debug.apk
-      - name: "Zip build artifact"
-        run: zip app-v${{ steps.buildnumber.outputs.build_number }}.zip app/build/outputs/apk/debug/app-debug.apk
+      - name: "Prepare artifacts"
+        id: prep-artifacts
+        run: |
+          mv app/build/outputs/apk/debug/app-debug.apk app-release-build-${{ steps.buildnumber.outputs.build_number }}.apk
+          echo "::set-output name=artifact_zip_name::app-artifacts.zip"
+          zip app-artifacts.zip app-release-build-${{ steps.buildnumber.outputs.build_number }}.apk
       - name: "Get Draft Release"
         id: get_draft_release
         uses: actions/github-script@v2
@@ -48,6 +41,13 @@ jobs:
               repo: context.repo.repo
             });
             const draft = releases.data.find(r => r.draft);
+            for (const asset of draft.assets) {
+              github.repos.deleteReleaseAsset({
+                owner: context.repo.owner,
+                repo:context.repo.repo,
+                asset_id: asset.id,
+              });
+            }
             core.setOutput('upload_url', draft.upload_url);
       - name: "Upload artifact to draft release"
         uses: actions/upload-release-asset@v1
@@ -55,6 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_draft_release.outputs.upload_url }}
-          asset_path: ./app-artifacts.zip
-          asset_name: app-artifacts.zip
+          asset_path: ./${{ steps.prep-artifacts.outputs.artifact_zip_name }}
+          asset_name: ${{ steps.prep-artifacts.outputs.artifact_zip_name }}
           asset_content_type: application/zip
