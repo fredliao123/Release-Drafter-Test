@@ -1,0 +1,60 @@
+name: Build App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate build number"
+        id: buildnumber
+        uses: einaregilsson/build-number@v2
+        with:
+          token: ${{ secrets.github_token }}
+      - name: "Checkout project"
+        uses: actions/checkout@v2
+      - name: "🧰 Set up JDK 1.8"
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: "Build app"
+        run: |
+          ./gradlew :app:assembleDebug --stacktrace
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ steps.buildnumber.outputs.build_number }}
+          KEYSTORE_ENCODED: ${{ secrets.KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: "Upload apk to GitHub"
+        uses: actions/upload-artifact@v1
+        with:
+          name: app-v${{ steps.buildnumber.outputs.build_number }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+      - name: "Zip build artifact"
+        run: zip app-v${{ steps.buildnumber.outputs.build_number }}.zip app/build/outputs/apk/debug/app-debug.apk
+      - name: "Get Draft Release"
+        id: get_draft_release
+        uses: actions/github-script@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const releases = await github.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const draft = releases.data.find(r => r.draft);
+            core.setOutput('upload_url', draft.upload_url);
+      - name: "Upload artifact to draft release"
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_draft_release.outputs.upload_url }}
+          asset_path: ./app-artifacts.zip
+          asset_name: app-artifacts.zip
+          asset_content_type: application/zip
