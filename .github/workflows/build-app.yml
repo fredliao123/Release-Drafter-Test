@@ -22,6 +22,7 @@ jobs:
           java-version: 1.8
       - name: "Build app"
         run: |
+          ./gradlew :app:lintDebug --stacktrace
           ./gradlew :app:assembleDebug --stacktrace
         shell: bash
       - name: "Prepare artifacts"
