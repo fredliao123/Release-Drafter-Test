@@ -9,6 +9,12 @@ jobs:
   draft-release:
     runs-on: ubuntu-latest
     steps:
+      - name: "Create Release Marker Branch"
+        uses: peterjgrainger/action-create-branch@v2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: 'release-marker'
       - name: "Generate build number"
         id: buildnumber
         uses: einaregilsson/build-number@v3
