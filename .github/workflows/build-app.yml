@@ -9,16 +9,6 @@ jobs:
   draft-release:
     runs-on: ubuntu-latest
     steps:
-      - name: "Delete Old Release Marker Branch"
-        uses: actions/github-script@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.git.deleteRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `refs/heads/release-marker`
-            });
       - name: "Create Release Marker Branch"
         uses: actions/github-script@v2
         with:
