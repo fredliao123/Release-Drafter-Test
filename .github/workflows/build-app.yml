@@ -17,7 +17,7 @@ jobs:
             github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: `refs/heads/release-marker`
+              ref: `refs/heads/release-marker`,
               sha: context.sha,
             });
       - name: "Generate build number"
