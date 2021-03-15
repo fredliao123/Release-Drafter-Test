@@ -9,6 +9,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.i("Test delete", "Test")
+        Log.i("Delete and create 2", "Test")
     }
 }

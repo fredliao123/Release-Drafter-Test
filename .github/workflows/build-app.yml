@@ -9,7 +9,7 @@ jobs:
   draft-release:
     runs-on: ubuntu-latest
     steps:
-      - name: "Delete Old Release Marker Branch"
+      - name: "Create Release Marker Branch"
         uses: actions/github-script@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -23,6 +23,12 @@ jobs:
             } catch(error) {
               console.log("The release-maker beanch  doesn't exist yet: " + error)
             }
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/heads/release-marker`,
+              sha: context.sha
+            });
       - name: "Generate build number"
         id: buildnumber
         uses: einaregilsson/build-number@v3
