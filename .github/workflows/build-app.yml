@@ -23,7 +23,7 @@ jobs:
             } catch(error) {
               console.log("The release-maker beanch  doesn't exist yet: " + error)
             }
-            github.git.createRef({
+            await github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: `refs/heads/release-marker`,
