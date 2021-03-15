@@ -14,19 +14,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            try {
-              await github.git.deleteRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `heads/release-marker`
-              });
-            } catch(error) {
-              console.log("The release-maker beanch  doesn't exist yet: " + error)
-            }
+            await github.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/heads/release-marker`
+            });
+
             await github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: `heads/release-marker`,
+              ref: `refs/heads/release-marker`,
               sha: context.sha
             });
       - name: "Generate build number"
